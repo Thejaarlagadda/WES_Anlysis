@@ -1,5 +1,3 @@
-# WES_Anlysis
-
 # Whole-Exome Sequencing Analysis in Inflammatory Breast Cancer
 
 This repository contains scripts and workflows for replicating the WES analysis from the paper:
@@ -56,5 +54,11 @@ for id in $(comm -23 <(sort SRR_ids.txt) <(ls | grep SRR | sort)); do
     fastq-dump --split-files --gzip $id
 done
 ```
+## We will start with the main workflow now
 
+```bash
+# -------------------
+# STEP 1: QC - Run fastqc 
+# -------------------
+echo "STEP 1: QC - Run fastqc"
 
