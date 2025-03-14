@@ -18,16 +18,15 @@ Published in *npj Breast Cancer (2021)* [Link](https://www.nature.com/articles/s
 
 ## 📁 **Directory Structure**
 
-
-## esearch and efetch are not available in your environment. These tools are part of NCBI Entrez Direct, which is separate from SRA Toolkit.
 ```bash
+## esearch and efetch are not available in your environment. These tools are part of NCBI Entrez Direct, which is separate from SRA Toolkit.
 cd ~
 sh -c "$(curl -fsSL https://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh)"
 export PATH=${HOME}/edirect:$PATH
 ```
 
-## Step 1: Download Data We retrieved WES data from NCBI SRA using:
-
+### Step 1: Download Data We retrieved WES data from NCBI SRA using:
+```bash
 ## command to list available sequencing runs under PRJNA713359:
 esearch -db sra -query PRJNA713359 | efetch -format runinfo > PRJNA713359_runinfo.csv
 
@@ -56,6 +55,6 @@ for id in $(comm -23 <(sort SRR_ids.txt) <(ls | grep SRR | sort)); do
     prefetch $id
     fastq-dump --split-files --gzip $id
 done
-
+```
 
 
