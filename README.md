@@ -20,11 +20,11 @@ Published in *npj Breast Cancer (2021)* [Link](https://www.nature.com/articles/s
 
 
 ## esearch and efetch are not available in your environment. These tools are part of NCBI Entrez Direct, which is separate from SRA Toolkit.
-
+```bash
 cd ~
 sh -c "$(curl -fsSL https://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh)"
 export PATH=${HOME}/edirect:$PATH
-
+```
 
 ## Step 1: Download Data We retrieved WES data from NCBI SRA using:
 
