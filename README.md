@@ -19,6 +19,17 @@ Published in *npj Breast Cancer (2021)* [Link](https://www.nature.com/articles/s
 ```bash
 # Reference files
 wget -c ftp://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
+gunzip hg19.fa.gz
+
+# bwa indexing
+bwa index ~/WES_project/reference/Homo_sapiens_assembly19.fasta
+
+# samtools indexing
+samtools faidx ~/WES_project/reference/Homo_sapiens_assembly19.fasta
+
+# gatk creating dictionary
+gatk CreateSequenceDictionary -R ~/WES_project/reference/Homo_sapiens_assembly19.fasta -O ~/WES_project/reference/Homo_sapiens_assembly19.dict
+
 ```
 
 ```bash
