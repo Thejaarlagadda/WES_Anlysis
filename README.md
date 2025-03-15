@@ -17,6 +17,11 @@ Published in *npj Breast Cancer (2021)* [Link](https://www.nature.com/articles/s
 ## 📁 **Directory Structure**
 
 ```bash
+# Reference files
+wget -c ftp://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
+```
+
+```bash
 ## esearch and efetch are not available in your environment. These tools are part of NCBI Entrez Direct, which is separate from SRA Toolkit.
 cd ~
 sh -c "$(curl -fsSL https://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/install-edirect.sh)"
