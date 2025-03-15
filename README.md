@@ -20,6 +20,7 @@ Published in *npj Breast Cancer (2021)* [Link](https://www.nature.com/articles/s
 # Reference files
 wget -c ftp://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
 gunzip hg19.fa.gz
+mv hg19.fa hg19.fasta
 
 # bwa indexing
 bwa index ~/WES_project/reference/Homo_sapiens_assembly19.fasta
