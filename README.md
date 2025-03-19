@@ -33,6 +33,23 @@ gatk CreateSequenceDictionary -R ~/WES_project/reference/hg19.fa -O ~/WES_projec
 
 ```
 
+### Downloading Known Sites for BQSR
+BQSR requires known sites of variation. Since you are using GRCh37, we will need:
+
+dbSNP vcf: Contains common SNPs.
+1000G Omni vcf: Commonly known variants from the 1000 Genomes Project.
+1000G Phase 1 indels: Indels from the 1000 Genomes Project.
+Mills and 1000G gold standard indels: High-confidence indels.
+
+```bash
+# Download the latest dbSNP for GRCh37 from NCBI’s S3 bucket
+wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/VCF/GCF_000001405.25.gz -O dbsnp_GRCh37.vcf.gz
+wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/VCF/GCF_000001405.25.gz.tbi -O dbsnp_GRCh37.vcf.gz.tbi
+
+
+
+```
+
 ```bash
 ## esearch and efetch are not available in your environment. These tools are part of NCBI Entrez Direct, which is separate from SRA Toolkit.
 cd ~
