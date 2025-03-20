@@ -12,7 +12,8 @@ Published in *npj Breast Cancer (2021)* [Link](https://www.nature.com/articles/s
 4. **Variant Calling** using GATK MuTect2
 5. **Copy Number Alteration (CNA) Analysis** using TITAN
 6. **Subclone Identification** using PyClone
-7. **Mutation Signature Analysis** using MutationalPatterns in R
+7. ** Integrate somatic an CNAs ** using PyClone or Titan
+8. **Mutation Signature Analysis** using MutationalPatterns in R
 
 ## 📁 **Directory Structure**
 
