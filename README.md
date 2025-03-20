@@ -42,13 +42,18 @@ dbSNP vcf: Contains common SNPs.
 Mills and 1000G gold standard indels: High-confidence indels.
 
 ```bash
-# Download the latest dbSNP for GRCh37 from NCBI’s S3 bucket
-wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/VCF/GCF_000001405.25.gz -O dbsnp_GRCh37.vcf.gz
-wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/VCF/GCF_000001405.25.gz.tbi -O dbsnp_GRCh37.vcf.gz.tbi
+# Download Known sites from GATK Resource Bundle
+wget -c https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/dbsnp_138.b37.vcf.gz
+wget -c https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/1000G_phase1.snps.high_confidence.b37.vcf.gz
 
+wget -c https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/1000G_phase1.indels.b37.vcf.gz
+# If it is not worked use this command for this site only 1000G_phase1.indels.b37.vcf.gz
+gsutil cp gs://gatk-legacy-bundles/b37/1000G_phase1.indels.b37.vcf.gz .
 
-
+wget -c https://storage.googleapis.com/gcp-public-data--broad-references/hg19/v0/Mills_and_1000G_gold_standard.indels.b37.vcf.gz
 ```
+
+
 
 ```bash
 ## esearch and efetch are not available in your environment. These tools are part of NCBI Entrez Direct, which is separate from SRA Toolkit.
