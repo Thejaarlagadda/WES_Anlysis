@@ -102,3 +102,16 @@ done
 # -------------------
 echo "STEP 1: QC - Run fastqc"
 
+
+
+
+
+
+
+### Example: Filter variants with gnomAD AF > 1% (assumed germline)
+bcftools view -i 'INFO/gnomAD_AF <= 0.01 || INFO/gnomAD_AF="."' input.vcf > somatic.vcf
+
+
+
+
+
