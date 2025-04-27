@@ -1,0 +1,179 @@
+# Load necessary libraries
+library(readr)
+library(dplyr)
+library(pheatmap)
+# Load Mutation Data
+mutation_data1 <- read_csv("/Users/thejaarlagadda/Downloads/14538252/fig1a-heatmap-sourcedata.csv")
+mutation_data2 <- read_csv("/Users/thejaarlagadda/Downloads/14538252/fig1b-heatmap-sourcedata.csv")
+
+# Combine mutation data
+mutation_data <- bind_rows(mutation_data1, mutation_data2)
+
+# data1
+mutation_data1 <- read_csv("/Users/thejaarlagadda/Downloads/14538252/fig1a-heatmap-sourcedata.csv")
+# Rename Gene column
+colnames(mutation_data1)[1] <- "Gene"
+
+# Set Gene names as rownames
+mutation_matrix <- as.data.frame(mutation_data1)
+rownames(mutation_matrix) <- mutation_matrix$Gene
+mutation_matrix <- mutation_matrix[ , -1]
+
+# View structure
+print(dim(mutation_matrix))
+
+# Plot Heatmap
+pheatmap(mutation_matrix,
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         fontsize_row = 6,
+         fontsize_col = 6,
+         main = "Mutation Heatmap (Genes vs Samples)")
+
+# Save heatmap
+pdf("mutation_heatmap1.pdf", width=10, height=10)
+pheatmap(mutation_matrix,
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         fontsize_row = 6,
+         fontsize_col = 6,
+         main = "Mutation Heatmap (Genes vs Samples)")
+dev.off()
+
+# mutation heatmap for dataset2
+mutation_data2 <- read_csv("/Users/thejaarlagadda/Downloads/14538252/fig1b-heatmap-sourcedata.csv")
+# Rename Gene column
+colnames(mutation_data2)[1] <- "Gene"
+
+# Set Gene names as rownames
+mutation_matrix <- as.data.frame(mutation_data2)
+rownames(mutation_matrix) <- mutation_matrix$Gene
+mutation_matrix <- mutation_matrix[ , -1]
+
+# View structure
+print(dim(mutation_matrix))
+
+# Plot Heatmap
+pheatmap(mutation_matrix,
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         fontsize_row = 6,
+         fontsize_col = 6,
+         main = "Mutation Heatmap (Genes vs Samples)")
+
+# Save heatmap
+pdf("mutation_heatmap2.pdf", width=10, height=10)
+pheatmap(mutation_matrix,
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         show_rownames = TRUE,
+         show_colnames = TRUE,
+         fontsize_row = 6,
+         fontsize_col = 6,
+         main = "Mutation Heatmap (Genes vs Samples)")
+dev.off()
+
+#### ---- Step 2. CNV analysis ----####
+
+# Combine mutation data
+mutation_data <- bind_rows(mutation_data1, mutation_data2)
+# Inspect combined mutation data
+print(head(mutation_data))
+
+# Load CNV data (example with one file)
+cnv_p1t1 <- read_tsv("/Users/thejaarlagadda/Downloads/14538252/fig2-p1t1-copynumber-sourcedata.txt")
+print(head(cnv_p1t1))
+
+# Define file paths (fully qualified paths already provided)
+cnv_files <- list(
+  "/Users/thejaarlagadda/Downloads/14538252/fig2-p1t1-copynumber-sourcedata.txt",
+  "/Users/thejaarlagadda/Downloads/14538252/fig2-p1t2-copynumber-sourcedata.txt",
+  "/Users/thejaarlagadda/Downloads/14538252/fig2-p2t3-copynumber-sourcedata.txt",
+  "/Users/thejaarlagadda/Downloads/14538252/fig2-p2t4-copynumber-sourcedata.txt",
+  "/Users/thejaarlagadda/Downloads/14538252/fig2-p4t7-copynumber-sourcedata.txt",
+  "/Users/thejaarlagadda/Downloads/14538252/fig2-p4t8-copynumber-sourcedata.txt",
+  "/Users/thejaarlagadda/Downloads/14538252/fig2-p6t11-copynumber-sourcedata.txt",
+  "/Users/thejaarlagadda/Downloads/14538252/fig2-p6t12-copynumber-sourcedata.txt"
+)
+
+# Load all CNV files into one dataframe
+cnv_data <- lapply(cnv_files, function(file) {
+  read_tsv(file, col_types = cols())
+}) %>% bind_rows(.id = "Sample")
+
+# Inspect combined CNV data
+print(head(cnv_data))
+
+setwd("/Users/thejaarlagadda/Downloads/14538252_new")
+
+# Save processed data for further steps
+saveRDS(mutation_data, file = "processed_mutation_data.rds")
+saveRDS(cnv_data, file = "processed_cnv_data.rds")
+
+library(ggplot2)
+library(GenomicRanges)
+
+# Load processed CNV data
+cnv_data <- readRDS("processed_cnv_data.rds")
+
+# Example CNV visualization for one sample (p1t1)
+sample_cnv <- cnv_data %>% filter(Sample == 1)
+
+ggplot(sample_cnv, aes(x = Position, y = LogRatio, color = factor(Chr))) +
+  geom_point(alpha=0.5, size=0.5) +
+  theme_bw() +
+  labs(title = "Genome-wide CNV Profile (Sample p1t1)", x = "Genomic Position", y = "Log Ratio", color = "Chromosome") +
+  theme(legend.position = "bottom")
+
+# Save plot
+ggsave("cnv_profile_sample_p1t1.pdf")
+
+####----Step 2: Identify Top Mutated Genes + Plot Bar Graph ----####
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+
+# Load mutation matrix
+mutation_data1 <- read_csv("/Users/thejaarlagadda/Downloads/14538252/fig1a-heatmap-sourcedata.csv")
+colnames(mutation_data1)[1] <- "Gene"
+
+# Calculate mutation frequency (sum across samples)
+mutation_counts <- mutation_data1 %>%
+  rowwise() %>%
+  mutate(Total_Mutations = sum(c_across(-Gene))) %>%
+  arrange(desc(Total_Mutations))
+
+# View top mutated genes
+head(mutation_counts, 10)
+
+# Plot top 20 mutated genes
+top_mutated_genes <- mutation_counts %>% top_n(20, Total_Mutations)
+
+ggplot(top_mutated_genes, aes(x = reorder(Gene, Total_Mutations), y = Total_Mutations)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Top 20 Mutated Genes", x = "Gene", y = "Mutation Count")
+
+# Save plot
+ggsave("top_20_mutated_genes.pdf", width=8, height=6)
+
+
+library(ComplexHeatmap)
+
+# Load preprocessed data
+mutation_data <- readRDS("processed_mutation_data.rds")
+cnv_data <- readRDS("processed_cnv_data.rds")
+
+# Create integrated heatmap (example simplified)
+mut_matrix <- table(mutation_data$Gene, mutation_data$Sample)
+cnv_matrix <- reshape2::acast(cnv_data, Position~Sample, value.var = "LogRatio", fun.aggregate=mean)
+
+Heatmap(mutation_matrix, name = "Mutations")
+Heatmap(cnv_matrix, name = "CNV LogRatio")
