@@ -114,24 +114,6 @@ bcftools view -i 'INFO/gnomAD_AF <= 0.01 || INFO/gnomAD_AF="."' input.vcf > soma
 
 
 
-```mermaid
-flowchart TD
-    A[Flow of Data] --> B[Patient Samples\nn=16\n(12 tumors + 4 normals)]
-    B --> C[DNA Extraction & QC\nAllPrep Kit\nNanoDrop/Qubit/Bioanalyzer]
-    C --> D[Whole Exome Sequencing\nIllumina HiSeq 2000]
-    D --> E[FASTQ Files]
-    E --> F[QC, Alignment\nBWA GRCh37\nGATK Processing]
-    F --> G[Variant Calling\nMuTect2 (Somatic)\nGATK (Germline)]
-    G --> H[Variant Reports]
-    H --> I[Annotation\nANNOVAR]
-    I --> J[Filtering]
-    J --> K[Somatic: Depth>25, AF>5%\nGermline: Depth≥50, GQ≥30]
-    K --> L[Copy Number Analysis\nTITAN]
-    L --> M[Subclone Inference\nPyClone\nCCF Clustering]
-    M --> N[Clonal Architecture\nLinear/Branching Models]
-    N --> O[Final Analysis Output]
-```
-
 
 
 
