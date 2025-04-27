@@ -1,0 +1,102 @@
+#!/bin/bash
+#SBATCH --job-name=alignment
+#SBATCH --mail-user=tarlagad@iu.edu
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=8
+#SBATCH --time=49:00:00
+#SBATCH --mem=200G
+#SBATCH --partition=general
+#SBATCH --account=c01569
+#SBATCH --error=align.error
+#SBATCH --output=align.out
+
+set -euo pipefail  # Super strict mode: crash if anything fails
+
+# Define directories
+REF_GENOME="/N/u/tarlagad/Quartz/WES_project/Reference/hg19.fa"
+INPUT_DIR="/N/u/tarlagad/Quartz/WES_project/fastqc_reports/fastp"
+SAM_DIR="/N/u/tarlagad/Quartz/WES_project/aligned_data/SAM"
+BAM_DIR="/N/u/tarlagad/Quartz/WES_project/aligned_data/BAM"
+SORTED_DIR="/N/u/tarlagad/Quartz/WES_project/aligned_data/sorted_BAM"
+
+# Load modules safely
+module load bwa || { echo "Failed to load bwa module"; exit 1; }
+module load samtools || { echo "Failed to load samtools module"; exit 1; }
+module load gatk || { echo "Failed to load gatk module"; exit 1; }
+
+# Create output directories
+mkdir -p "$SAM_DIR" "$BAM_DIR" "$SORTED_DIR"
+
+echo "Working directory contents:"
+ls "$INPUT_DIR"
+
+# Check reference genome exists
+if [[ ! -f "$REF_GENOME" ]]; then
+    echo "Reference genome not found: $REF_GENOME"
+    exit 1
+fi
+
+# Check BWA index exists
+if [[ ! -f "${REF_GENOME}.bwt" ]]; then
+    echo "Reference genome BWA index missing. Please index first with: bwa index $REF_GENOME"
+    exit 1
+fi
+
+echo "Starting alignment process..."
+
+# Step 1: Mapping
+for READ1 in "${INPUT_DIR}"/*_R1_trimmed.fastq.gz; do
+    if [[ ! -f "$READ1" ]]; then
+        echo "No matching R1 fastq.gz files found in $INPUT_DIR. Exiting."
+        exit 1
+    fi
+
+    BASENAME=$(basename "$READ1" _R1_trimmed.fastq.gz)
+    READ2="${INPUT_DIR}/${BASENAME}_R2_trimmed.fastq.gz"
+    SAM_FILE="${SAM_DIR}/${BASENAME}.sam"
+
+    echo "Processing sample: $BASENAME"
+
+    if [[ -f "$READ2" ]]; then
+        echo "Mapping $BASENAME..."
+        bwa mem -t 8 -R "@RG\tID:${BASENAME}\tSM:${BASENAME}\tPL:ILLUMINA\tLB:${BASENAME}\tPU:unit1" \
+            "$REF_GENOME" "$READ1" "$READ2" > "$SAM_FILE"
+                                                                                  echo "Generated SAM: $SAM_FILE"
+    else
+        echo "Missing READ2 file for sample $BASENAME: $READ2. Skipping."
+        continue
+    fi
+done
+
+# Step 2: SAM to BAM
+echo "Converting SAM to BAM..."
+for SAM in "${SAM_DIR}"/*.sam; do
+    BASENAME=$(basename "$SAM" .sam)
+    BAM_FILE="${BAM_DIR}/${BASENAME}.bam"
+
+    echo "Converting $SAM to $BAM_FILE..."
+    samtools view -@ 8 -bS "$SAM" -o "$BAM_FILE"
+    echo "Generated BAM: $BAM_FILE"
+done
+
+# Step 3: Sorting BAM
+echo "Sorting BAM files..."
+for BAM in "${BAM_DIR}"/*.bam; do
+    BASENAME=$(basename "$BAM" .bam)
+    SORTED_BAM="${SORTED_DIR}/${BASENAME}_sorted.bam"
+
+    echo "Sorting $BAM into $SORTED_BAM..."
+    samtools sort -@ 8 -m 4G -o "$SORTED_BAM" "$BAM"
+    echo "Sorted BAM: $SORTED_BAM"
+done
+
+# Step 4: Indexing BAM
+echo "Indexing sorted BAM files..."
+for SORTED_BAM in "${SORTED_DIR}"/*.bam; do
+    echo "Indexing $SORTED_BAM..."
+    samtools index "$SORTED_BAM"
+    echo "Indexed BAM: $SORTED_BAM"
+done
+
+echo "Alignment pipeline completed successfully."
