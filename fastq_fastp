@@ -1,0 +1,71 @@
+#!/bin/bash
+#SBATCH --job-name=fastQC
+#SBATCH --mail-user=tarlagad@iu.edu
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=8
+#SBATCH --time=49:00:00
+#SBATCH --mem=200G
+#SBATCH --partition=general
+#SBATCH --account=c01569
+#SBATCH --error=fastqc.error
+#SBATCH --output=fastqc.out
+
+# Load necessary modules
+module load fastqc
+module load fastp
+
+# Step 1: QC - Run fastqc
+echo "STEP 1: QC - Run fastqc"
+
+# Define directories
+RAW_DIR="/N/u/tarlagad/Quartz/WES_project/raw_SRA_data"          # Directory containing raw FASTQ files
+OUTPUT_DIR="/N/u/tarlagad/Quartz/WES_project/fastqc_reports"     # Directory for output
+FASTQC_DIR="${OUTPUT_DIR}/fastqc"                         # FastQC results directory
+FASTP_DIR="${OUTPUT_DIR}/fastp"                           # fastp results directory
+FASTQC_TRIMMED_DIR="/N/u/tarlagad/Quartz/WES_project/fastqc_reports/trimmed_fastqc"  # Output for FastQC
+MULTIQC_OUTPUT="/N/u/tarlagad/Quartz/WES_project/fastqc_reports/multiqc_reports"  # MultiQC output directory
+
+
+# Create output directories if they don't exist
+mkdir -p "$FASTQC_DIR"
+mkdir -p "$FASTP_DIR"
+
+
+# List all R1 files
+R1_SAMPLES=(${RAW_DIR}/*_1.fastq.gz)
+
+# Process each R1 file and its corresponding R2 file
+for R1_FILE in "${R1_SAMPLES[@]}"; do
+    BASENAME=$(basename "$R1_FILE" _1.fastq.gz)  # Extracting sample base name
+    R2_FILE="${RAW_DIR}/${BASENAME}_2.fastq.gz"  # Corresponding R2 file
+
+    echo "Processing $BASENAME"
+
+    # Step 1: Run FastQC for R1 and R2
+    fastqc "$R1_FILE" "$R2_FILE" --outdir="$FASTQC_DIR"
+    echo "FastQC completed for $BASENAME"
+
+    # Step 2: Run fastp for paired-end processing
+    fastp -i "$R1_FILE" -I "$R2_FILE" \
+          -o "${FASTP_DIR}/${BASENAME}_R1_trimmed.fastq.gz" \
+          -O "${FASTP_DIR}/${BASENAME}_R2_trimmed.fastq.gz" \
+          -j "${FASTP_DIR}/${BASENAME}_report.json" \
+          -h "${FASTP_DIR}/${BASENAME}_report.html" \
+          --thread 4
+    echo "fastp completed for $BASENAME"
+done
+
+
+# Create output directory if it doesn't exist
+mkdir -p "$FASTQC_TRIMMED_DIR"
+mkdir -p "$MULTIQC_OUTPUT"
+
+# Run FastQC on all trimmed files
+fastqc ${FASTP_DIR}/*.fastq.gz --outdir="$FASTQC_TRIMMED_DIR"
+
+# Run MultiQC on all FastQC results
+multiqc "$FASTQC_DIR" -o "$MULTIQC_OUTPUT"
+echo "FastQC on trimmed reads completed!"
+
+echo "All samples processed successfully!"
